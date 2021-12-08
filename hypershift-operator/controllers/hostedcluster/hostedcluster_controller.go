@@ -2082,20 +2082,33 @@ func reconcileCAPICluster(cluster *capiv1.Cluster, hcluster *hyperv1.HostedClust
 	cluster.Annotations = map[string]string{
 		hostedClusterAnnotation: client.ObjectKeyFromObject(hcluster).String(),
 	}
-	cluster.Spec = capiv1.ClusterSpec{
-		ControlPlaneEndpoint: capiv1.APIEndpoint{},
-		ControlPlaneRef: &corev1.ObjectReference{
-			APIVersion: "hypershift.openshift.io/v1alpha1",
-			Kind:       "HostedControlPlane",
-			Namespace:  hcp.Namespace,
-			Name:       hcp.Name,
-		},
-		InfrastructureRef: &corev1.ObjectReference{
-			APIVersion: infraCR.GetObjectKind().GroupVersionKind().GroupVersion().String(),
-			Kind:       infraCR.GetObjectKind().GroupVersionKind().Kind,
-			Namespace:  infraCR.GetNamespace(),
-			Name:       infraCR.GetName(),
-		},
+	if infraCR != nil {
+		cluster.Spec = capiv1.ClusterSpec{
+			ControlPlaneEndpoint: capiv1.APIEndpoint{},
+			ControlPlaneRef: &corev1.ObjectReference{
+				APIVersion: "hypershift.openshift.io/v1alpha1",
+				Kind:       "HostedControlPlane",
+				Namespace:  hcp.Namespace,
+				Name:       hcp.Name,
+			},
+			InfrastructureRef: &corev1.ObjectReference{
+				APIVersion: infraCR.GetObjectKind().GroupVersionKind().GroupVersion().String(),
+				Kind:       infraCR.GetObjectKind().GroupVersionKind().Kind,
+				Namespace:  infraCR.GetNamespace(),
+				Name:       infraCR.GetName(),
+			},
+		}
+	} else {
+		// None platform
+		cluster.Spec = capiv1.ClusterSpec{
+			ControlPlaneEndpoint: capiv1.APIEndpoint{},
+			ControlPlaneRef: &corev1.ObjectReference{
+				APIVersion: "hypershift.openshift.io/v1alpha1",
+				Kind:       "HostedControlPlane",
+				Namespace:  hcp.Namespace,
+				Name:       hcp.Name,
+			},
+		}
 	}
 
 	return nil
